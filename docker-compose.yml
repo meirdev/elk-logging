@@ -1,0 +1,54 @@
+version: '3'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .:/app
+      - logs:/var/log/elk_example_app/
+
+  filebeat:
+    depends_on:
+      - app
+    image: docker.elastic.co/beats/filebeat:8.6.2
+    volumes:
+      - ./filebeat.yml:/usr/share/filebeat/filebeat.yml
+      - logs:/var/log/elk_example_app/
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.6.2
+    ports:
+      - 9200:9200
+    environment:
+      - xpack.security.enabled=false
+      - discovery.type=single-node
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+
+  logstash:
+    depends_on:
+      - elasticsearch
+    image: docker.elastic.co/logstash/logstash:8.6.2
+    ports:
+      - 5043:5043
+      - 5044:5044
+    volumes:
+      - ./logstash.conf:/usr/share/logstash/pipeline/logstash.conf
+
+  kibana:
+    depends_on:
+      - elasticsearch
+    image: docker.elastic.co/kibana/kibana:8.6.2
+    ports:
+      - 5601:5601
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    volumes:
+      - kibanadata:/usr/share/kibana/data
+
+volumes:
+  logs:
+  esdata:
+  kibanadata:

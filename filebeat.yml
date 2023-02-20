@@ -1,0 +1,15 @@
+filebeat.inputs:
+  - type: filestream
+    paths:
+      - /var/log/elk_example_app/*.log
+
+output.logstash:
+  hosts: ["logstash:5043"]
+
+# processors:
+#   - dissect:
+#       tokenizer: "%{timestamp} - %{app} - %{level} - %{message}"
+#       target_prefix: "parsed"
+
+# output.console:
+#   pretty: true
